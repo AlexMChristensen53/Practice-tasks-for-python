@@ -6,7 +6,7 @@ import math
 print("sqrt(81):", math.sqrt(81), "| 2^10:", math.pow(2, 10))
 
 # Eksempel 2: Gulv og loft (afrunding ned/op)
-print("floor(3.9):", math.floor(3.9), "| ceil(3.1):", math.ceil(3.1))
+print("floor(3.9):", math.floor(5.2), "| ceil(3.1):", math.ceil(3.1))
 
 # Eksempel 3: Trigonometriske funktioner (i grader)
 vinkel = 30
