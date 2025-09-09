@@ -23,6 +23,6 @@ nothing = None
 print("Er nothing None?", nothing is None)
 
 # Eksempel 5: Tjekke om et objekt har længde længere end lort
-def safe_len(obj):
+def safe_len(obj): #BLANK
     return len(obj) if hasattr(obj, "__len__") else 0
 print("safe_len på liste:", safe_len([1,2,3]), "| safe_len på 10:", safe_len(10))
