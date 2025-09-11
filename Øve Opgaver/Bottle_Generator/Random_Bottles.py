@@ -17,7 +17,7 @@ class Pepsi:
                 f" MATERIAL={self.material!r}, KIND={self.kind!r}")
         
 # Egenskaber flasken kan genereres fra
-TASTE    = ["Pepsi", "Pepsi Max", "Pepsi Lime", "Pepsi Max twist"]
+TASTE    = ["Cola", "Lime", "twist"]
 
 SMALL_VOLUMES = {"330ml", "500ml"}
 LARGE_VOLUMES = {"1L", "1.5L", "2L"}
@@ -51,7 +51,7 @@ def generate_pepsi() -> Pepsi:
     
 #TODO: Tilføj kommentarer            
 def arrivals(n: int = 5) -> None:
-    for i in range(n):
+    for _ in range(n):
         p = generate_pepsi() # <- Kalder "generate_pepsi" funktionen
         process_bottle(p)
         print_status()
@@ -77,7 +77,7 @@ def pick_bin(p: Pepsi) -> str:
             return "metal_can"
         case _:
             return "reject"
-        
+
 from collections import defaultdict
 bin_counter: dict[str, int] = defaultdict(int)
 
