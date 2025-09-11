@@ -79,7 +79,7 @@ def pick_bin(p: Pepsi) -> str:
             return "reject"
 
 from collections import defaultdict
-bin_counter: dict[str, int] = defaultdict(int)
+bin_counter: defaultdict[str, int] = defaultdict(int)
 
 #TODO: Lav Kommentar    
 def process_bottle(p: Pepsi) -> None:
