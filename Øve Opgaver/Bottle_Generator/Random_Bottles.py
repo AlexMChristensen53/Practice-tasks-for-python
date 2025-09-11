@@ -20,7 +20,7 @@ class Pepsi:
 TASTES    = ["Pepsi", "Pepsi Max", "Pepsi Lime", "Pepsi Max twist"]
 
 SMALL_VOLUMES = {"330ml", "500ml"}
-LARGE_VOLUMES = {"1L", "1,5L", "2L"}
+LARGE_VOLUMES = {"1L", "1.5L", "2L"}
 
 CAN_MATERIAL = {"Metal"}
 SMALL_BOTTLE_MATERIAL = {"Glass", "Plastic"}
@@ -47,7 +47,7 @@ def generate_Pepsi() -> Pepsi:
         material=mat,
         kind=kind,
     )
-    
+        
 def arrivals(n: int = 5) -> None:
     for _ in range(n):
         p = generate_Pepsi() # <- Kalder "generate_Pepsi" funktionen
@@ -64,5 +64,20 @@ for _ in range(200):
     assert not (p.kind == "Can" and p.material != "Metal")
 print("OK")
 
-   
-# end def
+# Sorterings regler
+SORTING_BY_MAT_TYPE = {
+    ("Glass", "Bottle"): "glass_bottle",
+    ("Plastic", "Bottle"): "plastic_bottle",
+    ("Metal", "Can"): "metal_can", 
+}   
+
+def pick_bin(p: Pepsi) -> str:
+    match (p.material, p.kind):
+        case ("Glass", "Bottle"):
+            return "glass_bottle"
+        case ("Plastic", "Bottle"):
+            return "plastic_bottle"
+        case ("Metal", "Can"):
+            return "metal_can"
+        case _:
+            return "Weirdo"
