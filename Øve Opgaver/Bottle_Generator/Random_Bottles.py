@@ -54,8 +54,7 @@ def arrivals(n: int = 5) -> None:
     for i in range(n):
         p = generate_pepsi() # <- Kalder "generate_pepsi" funktionen
         process_bottle(p)
-        if (i + 1) % 5 == 0:
-            print_status()
+        print_status()
         time.sleep(0.5)
                 
 
