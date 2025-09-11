@@ -21,3 +21,6 @@ def side_effect():
     return True
 print("OR:", True or side_effect())
 print("AND:", False and side_effect())
+
+
+print("Daniel is super gay")
