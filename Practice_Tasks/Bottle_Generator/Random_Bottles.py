@@ -32,7 +32,7 @@ class Pepsi:
         self.volume = volume
         self.material = material
         self.container = container
-    
+   
     # Debug Print mode #TODO: Lav highlight regel for ord "DEBUG"
     def __repr__(self) -> str:
         soda = self.__class__.__name__
@@ -76,14 +76,6 @@ def arrivals(n: int = 5) -> None:
             print_status()
             time.sleep(0.5)
                 
-
-
-# Sorterings regler #TODO: SLET DICTIONARY BRUGES IKKE LÆNGERE
-SORTING_BY_MAT_TYPE = {
-    ("Glass", "Bottle"): "glass_bottle",
-    ("Plastic", "Bottle"): "plastic_bottle",
-    ("Metal", "Can"): "metal_can", 
-}   
 
 #TODO: Lav Kommentar
 def pick_bin(p: Pepsi) -> str:
