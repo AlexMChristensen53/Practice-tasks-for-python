@@ -1,8 +1,11 @@
-import random 
-import time
 import csv
-from pathlib import Path
+import random
+import time
+from collections import defaultdict
 from datetime import datetime
+from pathlib import Path
+
+import keyboard
 
 #TODO: Tilføj kommentar
 BASE_DIR = Path(__file__).resolve().parent
@@ -17,6 +20,8 @@ LARGE_VOLUMES = {"1L", "1.5L", "2L"}
 
 SMALL_BOTTLE_MATERIAL = {"Glass", "Plastic"}
 LARGE_BOTTLE_MATERIAL = {"Plastic"}
+
+FEJL_PRODUCT = ("Pilk")
 
 
 # Definerer min class
@@ -39,7 +44,7 @@ class Pepsi:
 # Laver og retunerer en tilfældig Pepsi
 def generate_pepsi() -> Pepsi:
     vol = random.choice(list(SMALL_VOLUMES | LARGE_VOLUMES))
-            
+                   
     if vol in LARGE_VOLUMES:
         # Store flasker er altid plastik
         container = "Bottle"
@@ -62,11 +67,14 @@ def generate_pepsi() -> Pepsi:
     
 #TODO: Tilføj kommentarer            
 def arrivals(n: int = 5) -> None:
-    for _ in range(n):
-        p = generate_pepsi() # <- Kalder "generate_pepsi" funktionen
-        process_bottle(p)
-        print_status()
-        time.sleep(0.5)
+    for _ in range(n):    
+        if keyboard.is_pressed("a"): #FIXME: Error simulation, virker ikke.
+            p = Pepsi("Pilk", "330ml", "Paper", "Carton")
+        else:
+            p = generate_pepsi() # <- Kalder "generate_pepsi" funktionen
+            process_bottle(p)
+            print_status()
+            time.sleep(0.5)
                 
 
 
@@ -87,10 +95,10 @@ def pick_bin(p: Pepsi) -> str:
         case ("Metal", "Can"):
             return "metal_can"
         case _:
-            return "reject"
+            return "rejected_bottle"
 
-from collections import defaultdict
-bin_counter: defaultdict[str, int] = defaultdict(int)
+
+bin_counter: defaultdict[str, int] = defaultdict(int)    
 
 #TODO: Lav Kommentar    
 def process_bottle(p: Pepsi) -> None:
