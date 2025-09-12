@@ -1,10 +1,12 @@
 import random 
 import time
-import csv, os
+import csv
+from pathlib import Path
 from datetime import datetime
 
 #TODO: Tilføj kommentar
-CSV_PATH = "sorting_log.csv"
+BASE_DIR = Path(__file__).resolve().parent
+CSV_PATH = BASE_DIR / "sorting_log.csv"
 FIELDNAMES = ["timestamp", "taste", "volume", "material", "container", "bin"]
 
 # Egenskaber flasken kan genereres fra
@@ -30,7 +32,7 @@ class Pepsi:
     def __repr__(self) -> str:
         soda = self.__class__.__name__
         return (f"{soda} TASTE={self.taste!r}, VOLUME={self.volume!r},"
-                f" MATERIAL={self.material!r}, KIND={self.container!r}")
+                f" MATERIAL={self.material!r}, CONTAINER={self.container!r}")
         
 
 
@@ -101,25 +103,24 @@ def process_bottle(p: Pepsi) -> None:
 def print_status() -> None:
     parts = [f"{k}:{bin_counter[k]}" for k in sorted(bin_counter)]
     print("Status", " | ".join(parts))
-    
-def init_csv(path: str = CSV_PATH) -> None:
-    #TODO: lav kommentar
-    needs_header = not os.path.exists(path)
-    with open(path, "a", newline="", encoding="utf-8") as f:
+
+#TODO: Lav kommentar    
+def init_csv(path: Path = CSV_PATH) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)   
+    needs_header = not path.exists()
+    with path.open("a", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=FIELDNAMES)
         if needs_header:
             w.writeheader()
-            
-def log_to_csv(p: Pepsi, bin_name: str, path: str = CSV_PATH) -> None:
-    with open(path, "a", newline="", encoding="utf-8") as f:
-         w = csv.DictWriter(f, fieldnames=FIELDNAMES)
-         w.writerow({
+
+#TODO: lav kommentar            
+def log_to_csv(p: Pepsi, bin_name: str, path: Path = CSV_PATH) -> None:
+    with path.open("a", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=FIELDNAMES)
+        w.writerow({
             "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "taste": p.taste,
-            "volume": p.volume,
-            "material": p.material,
-            "container": p.container,
-            "bin": bin_name,
+            "taste": p.taste, "volume": p.volume, "material": p.material,
+            "container": p.container, "bin": bin_name,
         })
 
 if __name__ == "__main__":
