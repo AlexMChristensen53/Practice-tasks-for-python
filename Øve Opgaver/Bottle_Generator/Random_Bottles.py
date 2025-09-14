@@ -1,18 +1,20 @@
 import csv
 import random
 import time
+import msvcrt
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 
-import keyboard
+""" CSV layout, per batch header, per flaske række, per batch total. Live keys bruger msvcrt (Virker kun på windows) 
+    Generer tilfældige pepsi elementer, der bliver sorteret i forskellige kasser"""
 
-# TODO: Tilføj kommentar
+# Konstanter jeg bruger til at håndtere min log.
 BASE_DIR = Path(__file__).resolve().parent
 CSV_PATH = BASE_DIR / "sorting_log.csv"
-FIELDNAMES = ["timestamp", "taste", "volume", "material", "container", "bin"]
+FIELDNAMES = ["timestamp", "brand", "taste", "volume", "material", "container", "bin"]
 
-# Egenskaber flasken kan genereres fra
+# Egenskaber flasken kan genereres fra.
 TASTE = ["Cola", "Lime", "twist"]
 
 SMALL_VOLUMES = {"330ml", "500ml"}
@@ -21,11 +23,45 @@ LARGE_VOLUMES = {"1L", "1.5L", "2L"}
 SMALL_BOTTLE_MATERIAL = {"Glass", "Plastic"}
 LARGE_BOTTLE_MATERIAL = {"Plastic"}
 
-FEJL_PRODUCT = "Pilk"
+
+current_batch = 0
+
+bin_counter: defaultdict[str, int] = defaultdict(int)
 
 
-# Definerer min class
+def init_csv(path: Path = CSV_PATH) -> None:
+    """Sikre at filen "sorting_log.csv" eksisterer ellers laver den en ny tom .csv fil"""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.touch(exist_ok=True)
+
+
+def start_new_batch(path: Path = CSV_PATH) -> None:
+    """Tæller +1 til "current_batch" hver gang mit program har kørt et loop færdigt eller det er blevet stoppet"""
+    global current_batch, bin_counter
+    current_batch += 1
+    bin_counter.clear()  # <- rydder min tæller så den kan starte fra 0, i det nye batch.
+    with path.open("a", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
+        w.writerow([])  # Blank linje til at springe en kolonne over.
+        w.writerow([f"BATCH {current_batch}", datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
+        w.writerow([])  # Blank linje til at springe en kolonne over.
+        w.writerow(FIELDNAMES)
+
+
+def end_current_batch(path: Path = CSV_PATH) -> None:
+    """Tilføjer et summary til slut i sorting_log.csv og viser total for hver kasse"""
+    bins = ["glass_bottle", "plastic_bottle", "metal_can", "rejected_bottle"]
+    counts = [bin_counter.get(b, 0) for b in bins]
+    total = sum(counts)
+    with path.open("a", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
+        w.writerow([])
+        w.writerow(bins + ["total"])
+        w.writerow(counts + [total])
+
+
 class Pepsi:
+    """Definerer min class Pepsi"""
 
     def __init__(
         self,
@@ -39,25 +75,44 @@ class Pepsi:
         self.material = material
         self.container = container
 
-    # Debug Print mode #TODO: Lav highlight regel for ord "DEBUG"
     def __repr__(self) -> str:
+        """Printer en tilfældigt genereret pepsi med '' rundt om ord den har taget fra lister
+
+        Returns:
+            str: Pepsi TASTE='Lime' VOLUME='330ml' MATERIAL='Metal' CONTAINER='Can'
+        """
         soda = self.__class__.__name__
         return (
             f"{soda} TASTE={self.taste!r}, VOLUME={self.volume!r},"
             f" MATERIAL={self.material!r}, CONTAINER={self.container!r}"
         )
 
+    def __str__(self) -> str:
+        """Printer den tilfældigt genereret pepsi med egenskaber separeret med " | "
 
-# Laver og retunerer en tilfældig Pepsi
+        Returns:
+            str: Pepsi | Lime | 330ml | Metal | Can
+        """
+        parts = [
+            self.__class__.__name__,
+            self.taste,
+            self.volume,
+            self.material,
+            self.container,
+        ]
+        return " | ".join(parts)
+
+
 def generate_pepsi() -> Pepsi:
+    """Laver og retunerer en tilfældig Pepsi"""
     vol = random.choice(list(SMALL_VOLUMES | LARGE_VOLUMES))
 
     if vol in LARGE_VOLUMES:
-        # Store flasker er altid plastik
+        # Store flasker er altid plastik.
         container = "Bottle"
         mat = "Plastic"
     else:
-        # Flaske, Dåse eller Glass flaske
+        # Flaske, Dåse eller Glasflaske.
         container = random.choice(["Bottle", "Can"])
         if container == "Can":
             mat = "Metal"
@@ -71,28 +126,61 @@ def generate_pepsi() -> Pepsi:
     )
 
 
-# TODO: Tilføj kommentarer
-def arrivals(n: int = 5) -> None:
-    for _ in range(n):
-        if keyboard.is_pressed("a"):  # FIXME: Error simulation, virker ikke.
-            p = Pepsi("Pilk", "330ml", "Paper", "Carton")
-        else:
-            p = generate_pepsi()  # <- Kalder "generate_pepsi" funktionen
+def run_batch(count: int) -> None:
+    """kører et sorterings batch, baseret på antal i "count" """
+    if count <= 0:
+        raise ValueError("Please enter a positive number")
+    start_new_batch()  # <- Kalder min funktion til at starte et nyt batch, således dette vises i min csv fil som "BATCH x".
+    try:
+        for _ in range(count):
+            injected = False  # sætter injected til "false" for hvert loop, bruges til at generer en "pilk".
+
+            if msvcrt.kbhit():
+                key = (
+                    msvcrt.getwch().lower()
+                )  # <- konvertere brugerens input til et lille bogstav, så det matcher logikken i "run_batch" for loop.
+                while msvcrt.kbhit():
+                    msvcrt.getwch()  # <- kigger efter brugerens input.
+                if key == "a":
+                    injected = True
+                elif key == "b":
+                    print("Stopping batch and returning to menu…")
+                    break
+                elif key == "q":
+                    print("Exiting program…")
+                    raise SystemExit
+
+            p = Pepsi("Pilk", "330ml", "Paper", "Carton") if injected else generate_pepsi()
             process_bottle(p)
             print_status()
             time.sleep(0.5)
+        pass
+    finally:
+        end_current_batch()
 
 
-# Sorterings regler #TODO: SLET DICTIONARY BRUGES IKKE LÆNGERE
-SORTING_BY_MAT_TYPE = {
-    ("Glass", "Bottle"): "glass_bottle",
-    ("Plastic", "Bottle"): "plastic_bottle",
-    ("Metal", "Can"): "metal_can",
-}
+def menu() -> None:
+    """Menu med bruger inputs"""
+    while True:
+        choice = input("\n[Enter]=Generate Pepsi's | 'q'=Quit program > ").strip().lower()
+
+        if choice == "q":
+            print("Goodbye!")
+            break
+
+        try:
+            count = int(input("How many Pepsis do you want? "))
+            if count <= 0:
+                print("Please enter a positive number")
+                continue
+            run_batch(count)  # Kalder min funktion "run_batch" det antal gange brugeren ønsker.
+        except ValueError as e:
+            print(f"Not a number: {e}")
+            continue
 
 
-# TODO: Lav Kommentar
 def pick_bin(p: Pepsi) -> str:
+    """Funktion til at bestemme hvilke produkter der hører til hvad"""
     match (p.material, p.container):
         case ("Glass", "Bottle"):
             return "glass_bottle"
@@ -104,40 +192,27 @@ def pick_bin(p: Pepsi) -> str:
             return "rejected_bottle"
 
 
-bin_counter: defaultdict[str, int] = defaultdict(int)
-
-
-# TODO: Lav Kommentar
 def process_bottle(p: Pepsi) -> None:
-    b = pick_bin(p)
-    bin_counter[b] += 1
-    print(f"{p} -> {b}")
-    log_to_csv(p, b)
+    """Vælger en kasse for mit "p" element, opdaterer tælleren, udskriver og tilføjer en række til min CSV fil"""
+    bin_name = pick_bin(p)
+    bin_counter[bin_name] += 1
+    print(f"{p} -> {bin_name}")
+    log_to_csv(p, bin_name)  # <- sørger for jeg kan tilføje denne info til min csv fil.
 
 
-# TODO: Lav Kommentar
 def print_status() -> None:
+    """Udskriver status efter hver genereret flaske så vi kan se de bliver sorteret korrekt"""
     parts = [f"{k}:{bin_counter[k]}" for k in sorted(bin_counter)]
     print("Status", " | ".join(parts))
 
 
-# TODO: Lav kommentar
-def init_csv(path: Path = CSV_PATH) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    needs_header = not path.exists()
-    with path.open("a", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=FIELDNAMES)
-        if needs_header:
-            w.writeheader()
-
-
-# TODO: lav kommentar
 def log_to_csv(p: Pepsi, bin_name: str, path: Path = CSV_PATH) -> None:
     with path.open("a", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=FIELDNAMES)
-        w.writerow(
+        writer = csv.DictWriter(f, fieldnames=FIELDNAMES)
+        writer.writerow(
             {
                 "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "brand": p.__class__.__name__,
                 "taste": p.taste,
                 "volume": p.volume,
                 "material": p.material,
@@ -149,11 +224,4 @@ def log_to_csv(p: Pepsi, bin_name: str, path: Path = CSV_PATH) -> None:
 
 if __name__ == "__main__":
     init_csv()
-    arrivals(10)
-
-    for _ in range(200):
-        p = generate_pepsi()
-        assert not (p.container == "Can" and p.volume in {"1L", "1.5L", "2L"})
-        assert not (p.volume in {"1L", "1.5L", "2L"} and p.material != "Plastic")
-        assert not (p.container == "Can" and p.material != "Metal")
-    print("OK")
+    menu()
