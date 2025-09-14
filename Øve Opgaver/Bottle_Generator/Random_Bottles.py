@@ -104,7 +104,16 @@ class Pepsi:
 
 
 def generate_pepsi() -> Pepsi:
-    """Laver og retunerer en tilfældig Pepsi"""
+    """Generer én tilfældig Pepsi.
+
+    Regler:
+     Store volumener (1L, 1.5L 2L) -> er altid plastik flasker.
+     "Can" -> er altid Metal og aldrig stor volumen.
+     Smag vælges fra TASTE.
+
+    Returns:
+        Pepsi: Et tilfældigt Pepsi objekt.
+    """
     vol = random.choice(list(SMALL_VOLUMES | LARGE_VOLUMES))
 
     if vol in LARGE_VOLUMES:
@@ -127,7 +136,20 @@ def generate_pepsi() -> Pepsi:
 
 
 def run_batch(count: int) -> None:
-    """kører et sorterings batch, baseret på antal i "count" """
+    """kører et sorterings batch med 'count' flasker.
+
+    Under batchen kan brugeren trykke:
+        f - Simulerer ét fejlprodukt i form af "Pilk"
+        s - Stopper batchet og vender tilbage til menuen
+        a - Afslutter programmet
+
+    Args:
+        count (int): Antal maksimale flasker der behandles i dette batch.
+
+    Raises:
+        ValueError: Hvis 'count' <=0
+        SystemExit: Hvis brugeren trykker "a" under batch
+    """
     if count <= 0:
         raise ValueError("Please enter a positive number")
     start_new_batch()  # <- Kalder min funktion til at starte et nyt batch, således dette vises i min csv fil som "BATCH x".
@@ -141,12 +163,12 @@ def run_batch(count: int) -> None:
                 )  # <- konvertere brugerens input til et lille bogstav, så det matcher logikken i "run_batch" for loop.
                 while msvcrt.kbhit():
                     msvcrt.getwch()  # <- kigger efter brugerens input.
-                if key == "a":
+                if key == "f":
                     injected = True
-                elif key == "b":
+                elif key == "s":
                     print("Stopping batch and returning to menu…")
                     break
-                elif key == "q":
+                elif key == "a":
                     print("Exiting program…")
                     raise SystemExit
 
@@ -207,6 +229,7 @@ def print_status() -> None:
 
 
 def log_to_csv(p: Pepsi, bin_name: str, path: Path = CSV_PATH) -> None:
+    """Laver overskrifter til de forskellige kolonner i "sorting_log.csv"""
     with path.open("a", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=FIELDNAMES)
         writer.writerow(
