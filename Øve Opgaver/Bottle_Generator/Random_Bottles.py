@@ -29,6 +29,7 @@ current_batch = 0
 bin_counter: defaultdict[str, int] = defaultdict(int)
 
 
+# TODO: Slå sammen med "start_new_batch"
 def init_csv(path: Path = CSV_PATH) -> None:
     """Sikre at filen "sorting_log.csv" eksisterer ellers laver den en ny tom .csv fil"""
     path.parent.mkdir(parents=True, exist_ok=True)
