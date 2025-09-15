@@ -9,12 +9,12 @@ from pathlib import Path
 """ CSV layout, per batch header, per flaske række, per batch total. Live keys bruger msvcrt (Virker kun på windows) 
     Generer tilfældige pepsi elementer, der bliver sorteret i forskellige kasser"""
 
-# Konstanter jeg bruger til at håndtere min log.
+# ---------- Paths & CSV opsætning ----------
 BASE_DIR = Path(__file__).resolve().parent
 CSV_PATH = BASE_DIR / "sorting_log.csv"
 FIELDNAMES = ["timestamp", "brand", "taste", "volume", "material", "container", "bin"]
 
-# Egenskaber flasken kan genereres fra.
+# ---------- Mulige pepsi typer ----------
 TASTE = ["Cola", "Lime", "twist"]
 
 SMALL_VOLUMES = {"330ml", "500ml"}
@@ -24,11 +24,12 @@ SMALL_BOTTLE_MATERIAL = {"Glass", "Plastic"}
 LARGE_BOTTLE_MATERIAL = {"Plastic"}
 
 
-current_batch = 0
+current_batch = 0  # Tæller hvilket batch vi er i
 
 bin_counter: defaultdict[str, int] = defaultdict(int)
 
 
+# ---------- CSV funktioner ----------
 # TODO: Slå sammen med "start_new_batch"
 def init_csv(path: Path = CSV_PATH) -> None:
     """Sikre at filen "sorting_log.csv" eksisterer ellers laver den en ny tom .csv fil"""
@@ -61,6 +62,7 @@ def end_current_batch(path: Path = CSV_PATH) -> None:
         w.writerow(counts + [total])
 
 
+# ---------- Pepsi Class ----------
 class Pepsi:
     """Definerer min class Pepsi"""
 
@@ -104,6 +106,7 @@ class Pepsi:
         return " | ".join(parts)
 
 
+# ---------- Generator for Pepsi ----------
 def generate_pepsi() -> Pepsi:
     """Generer én tilfældig Pepsi.
 
@@ -136,6 +139,7 @@ def generate_pepsi() -> Pepsi:
     )
 
 
+# ---------- Batch afvikling ----------
 def run_batch(count: int) -> None:
     """kører et sorterings batch med 'count' flasker.
 
@@ -182,6 +186,7 @@ def run_batch(count: int) -> None:
         end_current_batch()
 
 
+# ---------- Menu ----------
 def menu() -> None:
     """Menu med bruger inputs"""
     while True:
@@ -202,6 +207,7 @@ def menu() -> None:
             continue
 
 
+# ---------- Sorteringslogik ----------
 def pick_bin(p: Pepsi) -> str:
     """Funktion til at bestemme hvilke produkter der hører til hvad"""
     match (p.material, p.container):
@@ -246,6 +252,7 @@ def log_to_csv(p: Pepsi, bin_name: str, path: Path = CSV_PATH) -> None:
         )
 
 
+# ---------- Start program ----------
 if __name__ == "__main__":
     init_csv()
     menu()
