@@ -42,6 +42,9 @@ def ord_statistik(tekst: str) -> tuple[int, str]:
     return tuple_list
 
 
+##
+
+
 def mest_brugte_ord(tekst: str) -> tuple[str, str, str]:
     """Returnerer tuple med de tre mest brugte ord"""
     pass
